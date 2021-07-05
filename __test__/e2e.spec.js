@@ -6,7 +6,8 @@ dotenv.config()
 
 describe('Comments API', () => {
   beforeAll(() => {
-    axios.defaults.baseURL = process.env.DM_BASE_URL + process.env.DM_API_ROOT
+    axios.defaults.baseURL = process.env.DM_BASE_URL
+    console.log(axios.defaults.baseURL)
     axios.defaults.headers.common['Content-Type'] = 'application/json'
     axios.defaults.validateStatus = function (status) {
       // Throw only if the status code is greater than or equal to 500
@@ -18,10 +19,12 @@ describe('Comments API', () => {
     return db.collection('comments').drop()
   })
 
-  describe('adding comments', () => {
+  describe('agregando comentarios', () => {
     // Content moderator API only allows 1 request per second.
     beforeEach(done => setTimeout(() => done(), 1100))
-    it('adds a comment to the database', async () => {
+
+    //TEST POST
+    it('agregar a comentario a la base de datos', async () => {
       const response = await axios.post(
         '/comments/',
         makeFakeComment({
@@ -36,7 +39,7 @@ describe('Comments API', () => {
       expect(doc.published).toBe(true)
       return commentsDb.remove(posted)
     })
-    it('requires comment to contain an author', async () => {
+    it('se requiere comentario para contener autor', async () => {
       const response = await axios.post(
         '/comments',
         makeFakeComment({ id: undefined, author: undefined })
@@ -44,7 +47,7 @@ describe('Comments API', () => {
       expect(response.status).toBe(400)
       expect(response.data.error).toBeDefined()
     })
-    it('requires comment to contain text', async () => {
+    it('se requiere comentario para contener texto', async () => {
       const response = await axios.post(
         '/comments',
         makeFakeComment({ id: undefined, text: undefined })
@@ -52,7 +55,7 @@ describe('Comments API', () => {
       expect(response.status).toBe(400)
       expect(response.data.error).toBeDefined()
     })
-    it('requires comment to contain a valid postId', async () => {
+    it('se requiere comentario para contener un postId valido', async () => {
       const response = await axios.post(
         '/comments',
         makeFakeComment({ id: undefined, postId: undefined })
@@ -60,7 +63,7 @@ describe('Comments API', () => {
       expect(response.status).toBe(400)
       expect(response.data.error).toBeDefined()
     })
-    it('scrubs malicious content', async () => {
+    it('scrubs contenido malicioso', async () => {
       const response = await axios.post(
         '/comments',
         makeFakeComment({
@@ -72,19 +75,18 @@ describe('Comments API', () => {
       expect(response.data.posted.text).toBe('<p>hello!</p>')
       return commentsDb.remove(response.data.posted)
     })
-    it("won't publish profanity", async () => {
-      const profane = makeFakeComment({ id: undefined, text: 'You suck!' })
-      const response = await axios.post('/comments', profane)
-      expect(response.status).toBe(201)
-      expect(response.data.posted.published).toBe(false)
-      return commentsDb.remove(response.data.posted)
-    })
+
     it.todo("won't publish spam")
   })
-  describe('modfying comments', () => {
+
+  
+
+    //PUT O PATCH
+  describe('modificar comentarios', () => {
     // Content moderator API only allows 1 request per second.
     beforeEach(done => setTimeout(() => done(), 1100))
-    it('modifies a comment', async () => {
+
+    it('modificar un comentario', async () => {
       const comment = makeFakeComment({
         text: '<p>changed!</p>'
       })
@@ -94,7 +96,7 @@ describe('Comments API', () => {
       expect(response.data.patched.text).toBe('<p>changed!</p>')
       return commentsDb.remove(comment)
     })
-    it('scrubs malicious content', async () => {
+    it('scrubs contenido malicioso', async () => {
       const comment = makeFakeComment({
         text: '<script>attack!</script><p>hello!</p>'
       })
@@ -105,8 +107,10 @@ describe('Comments API', () => {
       return commentsDb.remove(comment)
     })
   })
-  describe('listing comments', () => {
-    it('lists comments for a post', async () => {
+
+  //GET 
+  describe('lista comentarios', () => {
+    it('lista comentarios para un post', async () => {
       const comment1 = makeFakeComment({ replyToId: null })
       const comment2 = makeFakeComment({
         postId: comment1.postId,
@@ -133,7 +137,7 @@ describe('Comments API', () => {
       expect(response.data).toContainEqual(expected[1])
       return comments.map(commentsDb.remove)
     })
-    it('threads comments', async done => {
+    it('hilod e comentarios', async done => {
       const comment1 = makeFakeComment({ replyToId: null })
       const reply1 = makeFakeComment({
         postId: comment1.postId,
@@ -183,18 +187,49 @@ describe('Comments API', () => {
         expect(response.data).toContainEqual(expected[1])
         expect(response.data).toContainEqual(expected[0])
         done()
-      }, 1100)
+      }, 100)
     })
+
+    it('lista comentarios principales', async () => {
+      const comment1 = makeFakeComment({ replyToId: null })
+      const comment2 = makeFakeComment({
+        postId: comment1.postId,
+        replyToId: null
+      })
+      const comments = [comment1, comment2]
+      const inserts = await Promise.all(comments.map(commentsDb.insert))
+      const expected = [
+        {
+          ...comment1,
+          replies: [],
+          createdOn: inserts[0].createdOn
+        },
+        {
+          ...comment2,
+          replies: [],
+          createdOn: inserts[1].createdOn
+        }
+      ]
+      const response = await axios.get('/main-comments',)
+      expect(response.data).toContainEqual(expected[0])
+      expect(response.data).toContainEqual(expected[1])
+      return comments.map(commentsDb.remove)
+    })
+
+
   })
-  describe('deleting comments', () => {
-    it('hard deletes', async () => {
+
+
+  //DELETE
+  describe('borrar comentarios', () => {
+    it('obligar borrado', async () => {
       const comment = makeFakeComment()
       await commentsDb.insert(comment)
       const result = await axios.delete(`/comments/${comment.id}`)
       expect(result.data.deleted.deletedCount).toBe(1)
       expect(result.data.deleted.softDelete).toBe(false)
     })
-    it('soft deletes', async () => {
+    it('borrado simple', async () => {
       const comment = makeFakeComment()
       const reply = makeFakeComment({ replyToId: comment.id })
       await commentsDb.insert(comment)

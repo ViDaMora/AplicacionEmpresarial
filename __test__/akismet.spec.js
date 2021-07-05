@@ -31,6 +31,6 @@ describe('akismet', () => {
       })
     }
     const res = await axios(req)
-    expect(res.data).toBe(false)
+    expect(res.data).toBe("invalid")
   })
 })

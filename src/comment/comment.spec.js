@@ -1,62 +1,62 @@
 import makeFakeComment from '../../__test__/fixtures/comment'
 import makeComment from './'
-describe('comment', () => {
-  it('must have an author', () => {
+describe('Comentario', () => {
+  it('debe tener un autor', () => {
     const comment = makeFakeComment({ author: null })
-    expect(() => makeComment(comment)).toThrow('Comment must have an author.')
+    expect(() => makeComment(comment)).toThrow('El comentario deben tener un autor.')
   })
 
-  it('must have a valid post id', () => {
+  it('debe tener un post id valido', () => {
     const comment = makeFakeComment({ postId: null })
-    expect(() => makeComment(comment)).toThrow('Comment must contain a postId.')
+    expect(() => makeComment(comment)).toThrow('El comentario debe tener un postId.')
   })
-  it('must have valid text', () => {
+  it('debe tener un texto valido', () => {
     const comment = makeFakeComment({ text: null })
     expect(() => makeComment(comment)).toThrow(
-      'Comment must include at least one character of text.'
+      'El comentario debe incluir al menos un carácter de texto.'
     )
   })
-  it('can be in reply to another comment', () => {
+  it('puede ser una replica a otro comentario', () => {
     const comment = makeFakeComment({ replyToId: 'invalid' })
     expect(() => makeComment(comment)).toThrow(
-      'If supplied. Comment must contain a valid replyToId.'
+      'Si se suministra. El comentario debe contener un replyToId válido.'
     )
     const notInReply = makeFakeComment({ replyToId: undefined })
     expect(() => makeComment(notInReply)).not.toThrow()
   })
-  it('can have an id', () => {
+  it('puede tener un id', () => {
     const comment = makeFakeComment({ id: 'invalid' })
-    expect(() => makeComment(comment)).toThrow('Comment must have a valid id.')
+    expect(() => makeComment(comment)).toThrow('El comentario deben tener un id valido.')
     const noId = makeFakeComment({ id: undefined })
     expect(() => makeComment(noId)).not.toThrow()
   })
-  it('can create an id', () => {
+  it('puede crear un id', () => {
     const noId = makeFakeComment({ id: undefined })
     const comment = makeComment(noId)
     expect(comment.getId()).toBeDefined()
   })
-  it('can be published', () => {
+  it('puede ser publicado', () => {
     const unpublished = makeFakeComment({ published: false })
     const comment = makeComment(unpublished)
     expect(comment.isPublished()).toBe(false)
     comment.publish()
     expect(comment.isPublished()).toBe(true)
   })
-  it('can be unpublished', () => {
+  it('puede ser no publicado', () => {
     const unpublished = makeFakeComment({ published: true })
     const comment = makeComment(unpublished)
     expect(comment.isPublished()).toBe(true)
     comment.unPublish()
     expect(comment.isPublished()).toBe(false)
   })
-  it('is createdOn now in UTC', () => {
+  it('es creado ahora en UTC', () => {
     const noCreationDate = makeFakeComment({ createdOn: undefined })
     expect(noCreationDate.createdOn).not.toBeDefined()
     const d = makeComment(noCreationDate).getCreatedOn()
     expect(d).toBeDefined()
     expect(new Date(d).toUTCString().substring(26)).toBe('GMT')
   })
-  it('is modifiedOn now in UTC', () => {
+  it('es modificado ahora en UTC', () => {
     const noModifiedOnDate = makeFakeComment({ modifiedOn: undefined })
     expect(noModifiedOnDate.modifiedOn).not.toBeDefined()
     const d = makeComment(noModifiedOnDate).getCreatedOn()
@@ -79,18 +79,18 @@ describe('comment', () => {
     expect(sane.getText()).toBe('<p>This is fine</p>')
     expect(insane.getText()).toBe('<p>but this is ok</p>')
     expect(() => makeComment(totallyInsane)).toThrow(
-      'Comment contains no usable text.'
+      'El comentario no contiene texto utilizable.'
     )
   })
-  it('can be marked deleted', () => {
+  it('puede ser marcado como borrodado', () => {
     const fake = makeFakeComment()
     const c = makeComment(fake)
     c.markDeleted()
     expect(c.isDeleted()).toBe(true)
-    expect(c.getText()).toBe('.xX This comment has been deleted Xx.')
-    expect(c.getAuthor()).toBe('deleted')
+    expect(c.getText()).toBe('.xX Este comentario ha sido eliminado Xx.')
+    expect(c.getAuthor()).toBe('borrado')
   })
-  it('includes a hash', () => {
+  it('incluye un hash', () => {
     const fakeComment = {
       author: 'Bruce Wayne',
       text: "I'm batman.",
@@ -103,17 +103,17 @@ describe('comment', () => {
       '7bb94f070d9305976b5381b7d3e8ad8a'
     )
   })
-  it('must have a source', () => {
+  it('debe tener un origen', () => {
     const noSource = makeFakeComment({ source: undefined })
-    expect(() => makeComment(noSource)).toThrow('Comment must have a source.')
+    expect(() => makeComment(noSource)).toThrow('El comentario debe tener un origen.')
   })
-  it('must have a source ip', () => {
+  it('debe tener un ip de origen', () => {
     const noIp = makeFakeComment({ source: { ip: undefined } })
     expect(() => makeComment(noIp)).toThrow(
-      'Comment source must contain an IP.'
+      'El origen del comentario debe contener una IP.'
     )
   })
-  it('can have a source browser', () => {
+  it('puede tener un buscador de origen', () => {
     const withBrowser = makeFakeComment()
     expect(
       makeComment(withBrowser)
@@ -121,7 +121,7 @@ describe('comment', () => {
         .getBrowser()
     ).toBe(withBrowser.source.browser)
   })
-  it('can have a source referrer', () => {
+  it('puede tener un origen referenciado', () => {
     const withRef = makeFakeComment()
     expect(
       makeComment(withRef)

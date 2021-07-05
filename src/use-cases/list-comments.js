@@ -1,7 +1,7 @@
 export default function makeListComments ({ commentsDb }) {
   return async function listComments ({ postId } = {}) {
     if (!postId) {
-      throw new Error('You must supply a post id.')
+      throw new Error('Debes suministrar un post id valido.')
     }
     const comments = await commentsDb.findByPostId({
       postId,
